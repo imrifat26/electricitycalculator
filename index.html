@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অত্যাধুনিক বিদ্যুৎ বিল ক্যালকুলেটর</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <h1><i class="fa-solid fa-bolt"></i> বিদ্যুৎ বিল ক্যালকুলেটর</h1>
+            <p>বাংলাদেশের সকল সেবাদানকারী সংস্থার সর্বশেষ ট্যারিফ অনুযায়ী সঠিক বিল হিসাব করুন</p>
+        </div>
+
+        <!-- Main Form -->
+        <div class="main-content">
+            <div class="grid-row">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-building"></i> সেবাদানকারী প্রতিষ্ঠান</label>
+                    <select class="form-control" id="provider">
+                        <option value="REB">পল্লী বিদ্যুৎ (REB)</option>
+                        <option value="DPDC">DPDC</option>
+                        <option value="DESCO">DESCO</option>
+                        <option value="BPDB">BPDB</option>
+                        <option value="WZPDCL">WZPDCL</option>
+                        <option value="NESCO">NESCO</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-layer-group"></i> গ্রাহক শ্রেণি (Category)</label>
+                    <select class="form-control" id="category">
+                        <option value="LTA">আবাসিক (LT-A)</option>
+                        <option value="AGRICULTURE">কৃষি সেচ (LT-B)</option>
+                        <option value="SMALL_IND">ক্ষুদ্র শিল্প (LT-C1)</option>
+                        <option value="COMMERCIAL">বাণিজ্যিক ও অফিস (LT-E)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Meter Reading Section (Optional) -->
+            <div class="meter-box">
+                <div class="meter-title">
+                    <i class="fa-solid fa-gauge-high"></i> মিটার রিডিং (অপশনাল)
+                </div>
+                <div class="grid-row" style="margin-bottom:0;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>পূর্ববর্তী পাঠ (Previous)</label>
+                        <input type="number" class="form-control" id="prevReading" placeholder="উদাহরণ: ১২৫০" oninput="calcUnitsFromReading()">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>বর্তমান পাঠ (Current)</label>
+                        <input type="number" class="form-control" id="currReading" placeholder="উদাহরণ: ১৪৫০" oninput="calcUnitsFromReading()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fa-solid fa-plug"></i> মোট ব্যবহৃত ইউনিট (kWh)</label>
+                <input type="number" class="form-control" id="units" placeholder="ইউনিট টাইপ করুন">
+            </div>
+
+            <button class="btn-calc" onclick="calculateBill()"><i class="fa-solid fa-calculator"></i> বিল হিসাব করুন</button>
+
+            <!-- Result Display Section -->
+            <div class="result-section" id="resultSection">
+                <h3>হিসাবের সারসংক্ষেপ</h3>
+                
+                <div class="result-card">
+                    <div class="res-item">
+                        <div class="label">এনার্জি চার্জ (মূল বিল)</div>
+                        <div class="value" id="resEnergy">৳ 0.00</div>
+                    </div>
+                    <div class="res-item">
+                        <div class="label">ডিমান্ড চার্জ + মিটার ভাড়া</div>
+                        <div class="value" id="resFixed">৳ 0.00</div>
+                    </div>
+                    <div class="res-item">
+                        <div class="label">ভ্যাট (৫%)</div>
+                        <div class="value" id="resVat">৳ 0.00</div>
+                    </div>
+                    <div class="res-item highlight">
+                        <div class="label">মোট বিল (নির্ধারিত সময়ে)</div>
+                        <div class="value" id="resTotal">৳ 0.00</div>
+                    </div>
+                </div>
+
+                <div class="late-fee-note">
+                    <i class="fa-solid fa-clock"></i> নির্ধারিত তারিখের পর পরিশোধ করলে (৫% বিলম্ব মাশুল সহ): <strong id="resLateTotal">৳ 0.00</strong>
+                </div>
+
+                <h4>ধাপভিত্তিক বিস্তারিত হিসাব (Slab Breakdown):</h4>
+                <table class="breakdown-table">
+                    <thead>
+                        <tr>
+                            <th>ধাপ (Slab)</th>
+                            <th>ব্যবহৃত ইউনিট</th>
+                            <th>রেট (টাকা)</th>
+                            <th>মোট (টাকা)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="slabTableBody"></tbody>
+                </table>
+
+                <button class="btn-print" onclick="openMemoModal()"><i class="fa-solid fa-print"></i> প্রিন্ট মেমো / ডাউনলোড</button>
+            </div>
+
+            <!-- Guidelines -->
+            <div class="rules-card">
+                <h3><i class="fa-solid fa-circle-info"></i> সাধারণ নিয়মাবলী ও নির্দেশিকা</h3>
+                <ul>
+                    <li>বিলের উল্লেখিত নির্ধারিত তারিখের মধ্যে পরিশোধ না করলে ৫% বিলম্ব মাশুল যুক্ত হবে।</li>
+                    <li>পরপর ২ মাস বিল অপরিশোধিত থাকলে মিটার সংযোগ বিচ্ছিন্ন করার বিধান রয়েছে।</li>
+                    <li>এসির তাপমাত্রা সবসময় ২৫° সেলসিয়াসে রাখুন এবং শক্তি সাশ্রয়ী LED বাল্ব ব্যবহার করুন।</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="owner-footer">
+            প্রস্তুতকারক ও পরিচালনা: <strong>Jakir Hossain Rifat</strong><br>
+            Department of Economics | Dinajpur Govt. College
+        </div>
+    </div>
+
+    <!-- Printable Memo Modal -->
+    <div class="modal-overlay" id="memoModal">
+        <div class="memo-box" id="printableMemo">
+            <div class="memo-header">
+                <h2>প্রাক্কলিত বিদ্যুৎ বিল মেমো</h2>
+                <p>অফিশিয়াল আনুমানিক হিসাব বিবরণী</p>
+            </div>
+
+            <div class="memo-info">
+                <div>
+                    <strong>প্রদানকারী:</strong> <span id="mProvider">-</span><br>
+                    <strong>ক্যাটাগরি:</strong> <span id="mCategory">-</span>
+                </div>
+                <div style="text-align: right;">
+                    <strong>মোট ইউনিট:</strong> <span id="mUnits">0</span> kWh<br>
+                    <strong>তারিখ:</strong> <span id="mDate">-</span>
+                </div>
+            </div>
+
+            <table class="breakdown-table" style="margin-bottom: 15px;">
+                <thead>
+                    <tr>
+                        <th>ধাপ (Slab)</th>
+                        <th>ইউনিট</th>
+                        <th>রেট</th>
+                        <th>টাকা</th>
+                    </tr>
+                </thead>
+                <tbody id="mSlabBody"></tbody>
+            </table>
+
+            <div class="memo-calc-details">
+                <div class="calc-row"><span>এনার্জি চার্জ:</span> <strong id="mEnergy">৳ 0.00</strong></div>
+                <div class="calc-row"><span>ডিমান্ড চার্জ ও মিটার ভাড়া:</span> <strong id="mFixed">৳ 0.00</strong></div>
+                <div class="calc-row"><span>ভ্যাট (৫%):</span> <strong id="mVat">৳ 0.00</strong></div>
+                <hr>
+                <div class="calc-row main-total"><span>সর্বমোট (নির্ধারিত সময়ে):</span> <strong id="mTotal">৳ 0.00</strong></div>
+                <div class="calc-row late-total"><span>বিলম্বিত ফি সহ মোট:</span> <strong id="mLateTotal">৳ 0.00</strong></div>
+            </div>
+
+            <div class="memo-footer">
+                ক্যালকুলেটর ডেভেলপার: <strong>Jakir Hossain Rifat</strong><br>
+                Department of Economics | Dinajpur Govt. College
+            </div>
+
+            <div class="no-print memo-actions">
+                <button class="btn-print-action" onclick="window.print()">প্রিন্ট করুন</button>
+                <button class="btn-close-action" onclick="closeMemoModal()">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
